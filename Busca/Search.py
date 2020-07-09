@@ -111,18 +111,19 @@ class Search:
         return environment
 
     def add_to_environment(self, type, amount):
-        elements_added = []
-        while(len(elements_added) < amount):
+        added = 0
+        while(added < amount):
             x = random.randint(0, len(self.environment) - 1)
             y = random.randint(0, len(self.environment[0]) - 1)
-            if((x, y) not in elements_added):
-                node = self.environment[x][y]
+            node = self.environment[x][y]
+            is_not_visited = node.type == NOT_VISITED
+            if(is_not_visited):
                 node.type = type
-                if(node.type == OBSTACLE):
+                if(type == OBSTACLE):
                     for edge in self.environment[x][y].edges:
                         edge.edges.remove(node)
                     node.edges = []                   
-                elements_added.append((x, y))
+                added = added + 1
         return self.environment
     
     def display(self):

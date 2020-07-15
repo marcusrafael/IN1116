@@ -1,5 +1,4 @@
 import random
-import time
 
 from Node import Node
 
@@ -22,7 +21,7 @@ COLORS = {
 
 class Search:
 
-    def __init__(self, rows=10, columns=15, obstacles=5):
+    def __init__(self, rows=10, columns=15, obstacles=50):
         self.rows = rows
         self.columns = columns
         self.obstacles = obstacles
@@ -34,6 +33,7 @@ class Search:
         self.add(VEHICLE)
 
         self.queue = [self.vehicle]
+        self.stack = [self.vehicle]
         
         # for row in range(self.rows):
         #     for column in range(self.columns):
@@ -78,18 +78,31 @@ class Search:
                     self.vehicle = node
                 added = added + 1
 
-    def solve(self):
+    def bfs(self):
         if(self.queue):
             current = self.queue.pop(0)
             for node in current.neighbors:
                 if(node.state == FOOD):
                     self.food = current
                     self.queue = []
+                    break
                 if(node.state == NOT_VISITED):
                     self.queue.append(node)
                     node.state = VISITED
                     node.parent = current
-                    time.sleep(0.1)
+
+    def dfs(self):
+        if(self.stack):
+            current = self.stack.pop()
+            for node in current.neighbors:
+                if(node.state == FOOD):
+                    self.food = current
+                    self.stack = []
+                    break
+                if(node.state == NOT_VISITED):
+                    self.stack.append(node)
+                    node.state = VISITED
+                    node.parent = current
 
     def path(self):
         if(self.food):

@@ -1,10 +1,12 @@
+NOT_VISITED = 0
+
 
 class Node:
 
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.state = 0
+        self.state = NOT_VISITED
         self.parent = None
         self.neighbors = []
 

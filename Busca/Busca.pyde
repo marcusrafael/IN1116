@@ -1,3 +1,4 @@
+import time
 import Search
 
 def setup():
@@ -7,6 +8,7 @@ def setup():
     
 def draw():
     background(255)
-    search.solve()
+    search.dfs()
     search.path()
     search.display()
+    time.sleep(0.1)

@@ -1,7 +1,12 @@
 import random
+import sys
+from ctypes import c_int64
 
 from Node import Node
 
+def increment(number):
+    number.value += 1
+    return number.value
 
 NOT_VISITED = 0
 VISITED = 1
@@ -27,6 +32,8 @@ class Search:
         self.obstacles = obstacles
         self.food = None
         self.vehicle = None
+        self.foodX = None
+        self.foodY = None
         self.grid = self.create()
         self.add(OBSTACLE, self.obstacles)
         self.add(FOOD)
@@ -34,31 +41,43 @@ class Search:
 
         self.queue = [self.vehicle]
         self.stack = [self.vehicle]
+        self.priority = [self.vehicle]
         
         # for row in range(self.rows):
         #     for column in range(self.columns):
         #         print(self.grid[row][column].state)
 
     def create(self):
-        grid = [[Node(row,column) for column in range(self.columns)] for row in range(self.rows)]
+        index = c_int64(0)
+        grid = [[Node(row,column,increment(index)) for column in range(self.columns)] for row in range(self.rows)]
+        
         for row in range(self.rows):
             for column in range(self.columns):
                 if(column < self.columns - 1): # vai pra direita
                     grid[row][column].neighbors.append(grid[row][column + 1])
+                    grid[row][column].neighbors_costs[grid[row][column + 1].index] = random.randint(1,4)
                 if(column > 0): # vai para esquerda
                     grid[row][column].neighbors.append(grid[row][column - 1])
+                    grid[row][column].neighbors_costs[grid[row][column - 1].index] = random.randint(1,4)
                 if(row < self.rows - 1): # desce
                     grid[row][column].neighbors.append(grid[row + 1][column])
+                    grid[row][column].neighbors_costs[grid[row + 1][column].index] = random.randint(1,4)
                 if(row > 0): # sobe
                     grid[row][column].neighbors.append(grid[row - 1][column])
+                    grid[row][column].neighbors_costs[grid[row - 1][column].index] = random.randint(1,4)
                 if(row < self.rows - 1 and column < self.columns - 1): # diagonal esquerda descendo
                     grid[row][column].neighbors.append(grid[row + 1][column + 1])
+                    grid[row][column].neighbors_costs[grid[row + 1][column + 1].index] = random.randint(1,4)
                 if(row > 0 and column > 0): # diagonal esqueda subindo
                     grid[row][column].neighbors.append(grid[row - 1][column - 1])
+                    grid[row][column].neighbors_costs[grid[row - 1][column - 1].index] = random.randint(1,4)
                 if(row > 0 and column < self.columns - 1): # diagonal direita subindo
                     grid[row][column].neighbors.append(grid[row - 1][column + 1])
+                    grid[row][column].neighbors_costs[grid[row - 1][column + 1].index] = random.randint(1,4)
                 if(row < self.rows - 1 and column > 0): # diagonal direita descendo
                     grid[row][column].neighbors.append(grid[row + 1][column - 1])
+                    grid[row][column].neighbors_costs[grid[row + 1][column - 1].index] = random.randint(1,4)
+        
         return grid
 
     def add(self, state, amount=1):
@@ -70,6 +89,9 @@ class Search:
             is_not_visited = node.state == NOT_VISITED
             if(is_not_visited):
                 node.state = state
+                if(state == FOOD):
+                    self.foodX = x
+                    self.foodY = y
                 if(state == OBSTACLE):
                     for neighbor in self.grid[x][y].neighbors:
                         neighbor.neighbors.remove(node)
@@ -90,7 +112,7 @@ class Search:
                     self.queue.append(node)
                     node.state = VISITED
                     node.parent = current
-
+                    
     def dfs(self):
         if(self.stack):
             current = self.stack.pop()
@@ -103,6 +125,92 @@ class Search:
                     self.stack.append(node)
                     node.state = VISITED
                     node.parent = current
+    def ucs(self):
+        if(self.priority):
+            minIndex = self.minDistance(self.priority)
+            current = self.priority.pop(minIndex)
+       
+            for node in current.neighbors:
+                if(node.state == FOOD):
+                    self.food = current
+                    self.priority = []
+                    break
+                if(node.state == NOT_VISITED):
+                    self.priority.append(node)
+                    node.state = VISITED
+                    node.parent = current
+     
+    def gbfs(self):
+        if(self.queue):
+            current = self.queue.pop()
+            minIndex = self.minLocalCost(current.neighbors, current)
+            
+            if(current.neighbors[minIndex].state == FOOD):
+                self.food = current
+                self.queue = []
+                
+            if(current.neighbors[minIndex].state == NOT_VISITED):
+                self.queue.append(current.neighbors[minIndex])
+                current.neighbors[minIndex].state = VISITED
+                current.neighbors[minIndex].parent = current
+    def aStar(self):
+        if(self.priority):
+            minIndex = self.minDistanceHeuristic(self.priority)
+            current = self.priority.pop(minIndex)
+       
+            for node in current.neighbors:
+                if(node.state == FOOD):
+                    self.food = current
+                    self.priority = []
+                    break
+                if(node.state == NOT_VISITED):
+                    self.priority.append(node)
+                    node.state = VISITED
+                    node.parent = current
+                    
+    def minLocalCost(self, neighbors, parent):
+        minValue = sys.maxint
+        minIndex = 0 
+        
+        for id, n in enumerate(neighbors):
+            heuristic = dist(n.x, n.y, self.foodX, self.foodY) 
+            line(n.x, n.y, self.foodX, self.foodY)
+            stroke(126);
+            if(heuristic < minValue):
+                minValue = heuristic
+                minIndex = id 
+        return(minIndex)
+        
+                
+    def minDistance(self, nodes):
+        minValue = sys.maxint
+        minIndex = 0 
+        for id, n in enumerate(nodes):
+            if(self.relativeCost(n) < minValue):
+                minValue = self.relativeCost(n)
+                minIndex = id 
+        return(minIndex)
+    
+    def minDistanceHeuristic(self, nodes):
+        minValue = sys.maxint
+        minIndex = 0 
+        cost = 0
+        for id, n in enumerate(nodes):
+            cost = self.relativeCost(n) + dist(self.foodX, self.foodY, n.x, n.y)
+            if(cost < minValue):
+                minValue = cost
+                minIndex = id 
+        return(minIndex)
+    
+    def relativeCost(self, current):
+       tempCurrent = current 
+       cost = 0
+       while(tempCurrent.index != self.vehicle.index):
+           if(tempCurrent.parent != None):
+               cost += tempCurrent.parent.neighbors_costs[tempCurrent.index] 
+               tempCurrent = tempCurrent.parent
+       return(cost)
+            
 
     def path(self):
         if(self.food):

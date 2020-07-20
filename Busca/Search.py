@@ -1,3 +1,4 @@
+import time
 import random
 import sys
 from ctypes import c_int64
@@ -171,17 +172,14 @@ class Search:
     def minLocalCost(self, neighbors, parent):
         minValue = sys.maxint
         minIndex = 0 
-        
         for id, n in enumerate(neighbors):
-            heuristic = dist(n.x, n.y, self.foodX, self.foodY) 
-            line(n.x, n.y, self.foodX, self.foodY)
-            stroke(126);
-            if(heuristic < minValue):
-                minValue = heuristic
-                minIndex = id 
+            if(n.state == NOT_VISITED or n.state == FOOD):
+                heuristic = dist(n.x, n.y, self.foodX, self.foodY)
+                if(heuristic < minValue):
+                    minValue = heuristic
+                    minIndex = id
         return(minIndex)
-        
-                
+
     def minDistance(self, nodes):
         minValue = sys.maxint
         minIndex = 0 
@@ -190,7 +188,7 @@ class Search:
                 minValue = self.relativeCost(n)
                 minIndex = id 
         return(minIndex)
-    
+
     def minDistanceHeuristic(self, nodes):
         minValue = sys.maxint
         minIndex = 0 
@@ -201,7 +199,7 @@ class Search:
                 minValue = cost
                 minIndex = id 
         return(minIndex)
-    
+
     def relativeCost(self, current):
        tempCurrent = current 
        cost = 0
@@ -210,13 +208,29 @@ class Search:
                cost += tempCurrent.parent.neighbors_costs[tempCurrent.index] 
                tempCurrent = tempCurrent.parent
        return(cost)
-            
 
     def path(self):
         if(self.food):
             if(self.food.state != VEHICLE):
                 self.food.state = PATH
                 self.food = self.food.parent
+            else:
+                self.again()
+
+    def again(self):
+        for row in range(self.rows):
+            for column in range(self.columns):
+                if(self.grid[row][column].state == FOOD):
+                    self.grid[row][column].state = VEHICLE
+                    self.vehicle = self.grid[row][column]
+                elif(self.grid[row][column].state in [VISITED, VEHICLE, PATH]):
+                    self.grid[row][column].state = NOT_VISITED
+
+        self.food = None
+        self.queue = [self.vehicle]
+        self.stack = [self.vehicle]
+        self.priority = [self.vehicle]
+        self.add(FOOD)
 
     def display(self):
         with pushMatrix():

@@ -8,7 +8,10 @@ def setup():
     
 def draw():
     background(255)
-    search.dfs()
+    #search.dfs()
+    #search.ucs()
+    search.gbfs()
+    #search.aStar()
     search.path()
     search.display()
     time.sleep(0.1)

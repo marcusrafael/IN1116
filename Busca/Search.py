@@ -196,7 +196,10 @@ class Search:
         minIndex = 0 
         cost = 0
         for id, n in enumerate(nodes):
-            cost = self.relativeCost(n) + dist(self.foodX, self.foodY, n.x, n.y)
+            food = self.grid[self.foodX][self.foodY]
+            heuristic = dist(n.x, n.y, self.foodX, self.foodY)
+            line(n.grid_x, n.grid_y, food.grid_x, food.grid_y)
+            cost = self.relativeCost(n) + heuristic
             if(cost < minValue):
                 minValue = cost
                 minIndex = id 

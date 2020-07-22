@@ -174,7 +174,9 @@ class Search:
         minIndex = 0 
         for id, n in enumerate(neighbors):
             if(n.state == NOT_VISITED or n.state == FOOD):
+                food = self.grid[self.foodX][self.foodY]
                 heuristic = dist(n.x, n.y, self.foodX, self.foodY)
+                line(n.grid_x, n.grid_y, food.grid_x, food.grid_y)
                 if(heuristic < minValue):
                     minValue = heuristic
                     minIndex = id
@@ -239,6 +241,8 @@ class Search:
             yspace = 50
             for row in range(self.rows):
                 for column in range(self.columns):
+                    self.grid[row][column].grid_x = xspace
+                    self.grid[row][column].grid_y = yspace
                     value = self.grid[row][column].state
                     r, g, b = COLORS[value]
                     fill(r, g, b)

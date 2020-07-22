@@ -6,6 +6,8 @@ class Node:
     def __init__(self, x, y, index):
         self.x = x
         self.y = y
+        self.grid_x = 0
+        self.grid_y = 0
         self.state = NOT_VISITED
         self.parent = None
         self.neighbors = []

@@ -15,4 +15,4 @@ def draw():
     #search.aStar()
     search.path()
     search.display()
-    time.sleep(0.3)
+    time.sleep(0.5)

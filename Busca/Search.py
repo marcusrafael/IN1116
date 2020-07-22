@@ -146,6 +146,10 @@ class Search:
             current = self.queue.pop()
             minIndex = self.minLocalCost(current.neighbors, current)
             
+            while(minIndex < 0):
+                current = current.parent
+                minIndex = self.minLocalCost(current.neighbors, current)
+            
             if(current.neighbors[minIndex].state == FOOD):
                 self.food = current
                 self.queue = []
@@ -171,7 +175,7 @@ class Search:
                     
     def minLocalCost(self, neighbors, parent):
         minValue = sys.maxint
-        minIndex = 0 
+        minIndex = -1 
         for id, n in enumerate(neighbors):
             if(n.state == NOT_VISITED or n.state == FOOD):
                 food = self.grid[self.foodX][self.foodY]
